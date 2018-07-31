@@ -1,0 +1,52 @@
+// 硬件配置：
+	GPIOC-->	PC0~PC3(Motor1);
+	GPIOC-->	PC4~PC7(Motor2);
+	GPIOC-->	PC8~PC11(Motor3);
+// K*8键盘：
+	GPIOB-->	PB5~PB12(KEY);
+
+// 工作计划：
+// 星期二，测试当前硬件配置；测试电机；测试A4988驱动器，并驱动单个步进电机；设计步进电机三轴联动程序结构流程；
+
+// 星期三，编写并测试步进电机三轴联动运行流程；
+
+// 星期四，上机调试；
+
+
+
+// 工作内容（Tue）：
+//1. 测试电机		---->完好；
+
+//2. 测试L289N驱动器
+	
+//---->测试结论：完好；
+//---->遇到问题：无法使电机同步运转但速度不一致；
+//---->测试过程：
+//	2.1 （分时速度可调）单个电机单独运动：
+		
+//		X轴：	MotorX(){loop(i):GPIO_MotorX_Write(pilseX[i]);Delay(speedX)}
+//		Y轴：	MotorY(){loop(i):GPIO_MotorY_Write(pilseY[i]);Delay(speedY)}
+//		Z轴：	MotorZ(){loop(i):GPIO_MotorZ_Write(pilseZ[i]);Delay(speedZ)}
+
+//	2.2 （同时速度同步）多个电机一起运动：
+		
+//		XY轴：	MotorXY(){loop(i):GPIO_MotorXY_Write(pilseXY[i]);Delay(speedXY)}
+//		XZ轴：	MotorXZ(){loop(i):GPIO_MotorXZ_Write(pilseXZ[i]);Delay(speedXZ)}
+//		YZ轴：	MotorYZ(){loop(i):GPIO_MotorYZ_Write(pilseYZ[i]);Delay(speedYZ)}
+//		XYZ轴：	MotorXYZ(){loop(i):GPIO_MotorXYZ_Write(pilseXYZ[i]);Delay(speedXYZ)}
+//		（OO）2号L289N驱动器好像有问题，测试的时候，按照程序结构，2号L289N驱动器上接的步进电机反转速度较慢
+
+//	2.3 （分时速度异步）多个电机一起运动：
+
+//		无法实现，考虑用A4988驱动器，通过改变脉冲信号的频率，来改变速度。
+
+
+//3. 测试A4988驱动器	---->；
+
+//4. 测试使用A4988驱动单个步进电机
+			---->；
+
+
+// 明日：测试A4988，测试2号驱动器（换一个驱动器）
+
+// 驱动器还真他妈是坏的

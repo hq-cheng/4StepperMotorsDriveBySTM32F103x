@@ -1,0 +1,3 @@
+步进电机锁相运行时，电流是额定电流的30%-50%（有的说是50%-70%）。电流大，步进电机外表温度70-80度是正常现象。
+https://github.com/synthetos/TinyG/wiki/TinyG-Start
+
