@@ -1,0 +1,16 @@
+..\obj\ironhand.o: ..\HARDWARE\IronHand\IronHand.c
+..\obj\ironhand.o: ..\HARDWARE\IronHand\IronHand.h
+..\obj\ironhand.o: ..\SYSTEM\sys\sys.h
+..\obj\ironhand.o: ..\USER\stm32f10x.h
+..\obj\ironhand.o: ..\CORE\core_cm3.h
+..\obj\ironhand.o: E:\Keil5\ARM\ARMCC\Bin\..\include\stdint.h
+..\obj\ironhand.o: ..\USER\system_stm32f10x.h
+..\obj\ironhand.o: ..\USER\stm32f10x_conf.h
+..\obj\ironhand.o: ..\STM32F10x_FWLib\inc\stm32f10x_exti.h
+..\obj\ironhand.o: ..\USER\stm32f10x.h
+..\obj\ironhand.o: ..\STM32F10x_FWLib\inc\stm32f10x_gpio.h
+..\obj\ironhand.o: ..\STM32F10x_FWLib\inc\stm32f10x_rcc.h
+..\obj\ironhand.o: ..\STM32F10x_FWLib\inc\stm32f10x_tim.h
+..\obj\ironhand.o: ..\STM32F10x_FWLib\inc\stm32f10x_usart.h
+..\obj\ironhand.o: ..\STM32F10x_FWLib\inc\misc.h
+..\obj\ironhand.o: ..\SYSTEM\delay\delay.h
