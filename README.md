@@ -2,8 +2,11 @@
 基于 STM32F103x系列 单片机的三轴步进电机驱动程序
 
 /**
+
  \*  Copyright 2018，程豪琪，哈尔滨工业大学（深圳）
+
  \*  All Rights Reserved.
+
  */
 
 /******************************* ***郑重声明*** ************************************
@@ -106,23 +109,25 @@ TIM_SetAutoreload(TIMx,fpwm_arr)
 
 ### 4.键盘相关的GPIO接口说明：
 
-> * 相关GPIO口： 
-> *	&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;				GPIOB5	(K1)
-> *	&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;				GPIOB6	(K2)				
-> *	&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;				GPIOB13 (K3)	//GPIOB7  (K3)
-> *	&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;				GPIOB14	(K4)	//GPIOB8  (K4)	
-> *	&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;				GPIOB9	(K5)
-> *	&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;				GPIOB10	(K6)
-> *	&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;				GPIOB11	(K7)
-> *	&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;				GPIOB12	(K8)
-> * 效果： 		按下K1，顺时针转
-> *	&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;	   		按下K2，逆时针转;
-> *  &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;		   			按下K3，加速;
-> *	&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;		   		按下K4，减速 ;
-> *	&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;		   		按下K5，暂停;
-> *	&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;		   		按下K6，启动;
-> *	&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;		   		按下K7，计时加长;
-> *	&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;		   		按下K8，计时减少；
+* 相关GPIO口： 
+	
+	> &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;				GPIOB5	(K1)
+	> &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;				GPIOB6	(K2)				
+	> &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;				GPIOB13 (K3)	//GPIOB7  (K3)
+	> &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;				GPIOB14	(K4)	//GPIOB8  (K4)	
+	> &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;				GPIOB9	(K5)
+	> &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;				GPIOB10	(K6)
+	> &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;				GPIOB11	(K7)
+	> &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;				GPIOB12	(K8)
+* 效果： 		按下K1，顺时针转
+	
+	> &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;	   		按下K2，逆时针转;
+	> &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;		   			按下K3，加速;
+	> &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;		   		按下K4，减速 ;
+	> &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;		   		按下K5，暂停;
+	> &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;		   		按下K6，启动;
+	> &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;		   		按下K7，计时加长;
+	> &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;		   		按下K8，计时减少；
 
 
 \* @Version: Beta2.0  
@@ -131,28 +136,28 @@ TIM_SetAutoreload(TIMx,fpwm_arr)
 
 * 附：重构顺序：
 
->	1. 键盘
->	1. 键盘
-		确认按键后返回相应键值
-		可以在主程序中根据键值设计响应程序
->	2. 计时定时器 TIM1			
->	3. PWM 生产定时器 TIM2,TIM3,TIM4			
-		自动重装载计数值、计数器分频系数可调
-		默认pwm占空比50%
-		默认关闭pwm通道输出使能
->	4. 四二步进电机基本控制
-		启动/停止电机函数，启动过程包括电机pwm使能，和加减速过程
-		改变电机速度函数
-		改变电机方向函数，如果电机此时处于运行状态，应先停止在反方向启动
->	5. 机械手八二电机基本控制
-		打开机械手
-		关闭机械手
-		保持机械手当前状态
->	6. GPIO口初始化
-		全部存储在GPIO_Motor.c文件中
-		含有基础的XYZ三轴步进电机使能和反向对应GPIO端口初始化
-		含有基础的XYZ三轴步进电机PWM脉冲信号对应GPIO端口初始化
-		含有定时器TIM2，TIM3，TIM4的pwm输出通道对应GPIO端口初始化
-		含有机械手八二马达的L289N驱动器控制对应GPIO端口引脚初始化
+	>	1. 键盘
+	>	1. 键盘
+			确认按键后返回相应键值
+			可以在主程序中根据键值设计响应程序
+	>	2. 计时定时器 TIM1			
+	>	3. PWM 生产定时器 TIM2,TIM3,TIM4			
+			自动重装载计数值、计数器分频系数可调
+			默认pwm占空比50%
+			默认关闭pwm通道输出使能
+	>	4. 四二步进电机基本控制
+			启动/停止电机函数，启动过程包括电机pwm使能，和加减速过程
+			改变电机速度函数
+			改变电机方向函数，如果电机此时处于运行状态，应先停止在反方向启动
+	>	5. 机械手八二电机基本控制
+			打开机械手
+			关闭机械手
+			保持机械手当前状态
+	>	6. GPIO口初始化
+			全部存储在GPIO_Motor.c文件中
+			含有基础的XYZ三轴步进电机使能和反向对应GPIO端口初始化
+			含有基础的XYZ三轴步进电机PWM脉冲信号对应GPIO端口初始化
+			含有定时器TIM2，TIM3，TIM4的pwm输出通道对应GPIO端口初始化
+			含有机械手八二马达的L289N驱动器控制对应GPIO端口引脚初始化
 		
 *******************************************************************************/
