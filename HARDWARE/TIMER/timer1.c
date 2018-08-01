@@ -83,11 +83,8 @@ void TIM1_UP_IRQHandler(void)
 			if(motor1.nextMove == 1)		// 如果是反向过程，到达复位点停止
 			{
 				motor1.isResetPoint = 1;
+				motor1.isDestn = 0;			// 这俩值相反的
 				motor1.nextMove = 0;
-				if(motor1.totalTime > motor2.totalTime)
-				{
-					TIM_Cmd(TIM1,DISABLE);	// 电机1用的时间长，最后复位停止时关闭定时器
-				}
 			}
 		}
 		
@@ -101,11 +98,8 @@ void TIM1_UP_IRQHandler(void)
 			if(motor2.nextMove == 1)
 			{
 				motor2.isResetPoint = 1;
+				motor2.isDestn = 0;
 				motor2.nextMove = 0;
-				if(motor2.totalTime > motor1.totalTime)
-				{
-					TIM_Cmd(TIM1,DISABLE);
-				}
 			}
 			
 		}

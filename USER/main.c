@@ -30,6 +30,11 @@
 #include "motor_ctrl.h"
 #include "motor.h"
 #include "math.h"
+#include "usart_master.h"
+
+// 自己测试/找bug的时候，设置为1
+#define USART1_DEBUG 		0						// 串口测试，此时USART1_DEBUG=1，KEY_DEBUG=0
+#define	KEY_DEBUG			0						// 按键模拟串口测试，此时USART1_DEBUG=0，KEY_DEBUG=1
 
 void Main_Init(void);
 void Step(void);
@@ -39,7 +44,14 @@ uint16_t count_time = 0;							// 定时器中断每间隔1ms触发，达到指�
 
 // 键盘相关变量
 uint16_t Key_Flag = 0;
-unsigned char buf[64] = {9,12,4,7,10,4,11,6};
+
+// 串口接收缓冲数组
+#if KEY_DEBUG
+	unsigned char buf[64] = {9,12,4,7,10,4,11,6};
+#else
+	volatile unsigned char buf[30];
+#endif
+
 
 // 主函数文件中定义电机的结构体变量
 volatile MOTOR_CONTROL motor1;
@@ -48,11 +60,32 @@ volatile MOTOR_CONTROL motor3;
 
 int main(void)
 {
+#if USART1_DEBUG
+	int k;
+#endif
+	
 	Main_Init();
 	TIM_Cmd(TIM1,DISABLE);
+	
+#if KEY_DEBUG
+#else
+	USART1_Master_Init(9600);
+#endif
+
+#if USART1_DEBUG
+	for(k=0;k<10;k++)
+	{
+		USART_SendData(USART1,buf[k]);
+		// 等待发送缓存器清空（数据已经开始发送）
+		while(USART_GetFlagStatus(USART1, USART_FLAG_TXE) == RESET);
+	}
+
+#endif
+
 	while(1)
 	{												// 主循环程序
-		
+
+#if KEY_DEBUG
 		Key_Flag = Key8_scan();						// 检测按键
 		switch(Key_Flag) {
 			case 0:
@@ -62,6 +95,10 @@ int main(void)
 				Step();
 				break;
 		}
+#else
+		Step();
+#endif
+		
 		if(motor1.isDestn && motor2.isDestn)
 		{											// 到达了目的地
 			TIM_Cmd(TIM1,DISABLE);
@@ -132,17 +169,31 @@ void Main_Init()
 void Step()
 {
 	static int i=0;
+	
+#if USART1_DEBUG
+	USART_SendData(USART1,i);
+	while(USART_GetFlagStatus(USART1, USART_FLAG_TXE) == RESET);
+#endif
+	
 	if(motor1.isResetPoint && motor2.isResetPoint)
 	{
-		if(buf[i]!=0 || buf[i+1]!=0)
+		TIM_Cmd(TIM1,DISABLE);
+		motor1.totalTime = 0;	// 当一次单步操作完成，步进电机复位到原点后，
+		motor2.totalTime = 0;	// 将上次移动所需totalTime清零，防止电机瞎几把乱动
+		if(buf[i]!=0 && buf[i+1]!=0)
 		{
 			// 确定电机移动坐标
 			motor1.destn = buf[i];
-			motor2.destn = buf[i];
+			motor2.destn = buf[i+1];
 			// 确定所需时间
 			motor1.totalTime = buf[i];
 			motor2.totalTime = buf[i+1];
-			
+#if KEY_DEBUG
+#else			
+			// 串口缓冲区当前指令清0
+			buf[i] = 0;
+			buf[i+1] = 0;
+#endif		
 			Start_Motor_withS(MOTOX,0);
 			Start_Motor_withS(MOTOY,0);
 			motor1.nextMove = 0;					// 正向过程

@@ -44,6 +44,11 @@
 				GPIOC6	--> OPEN_HAND
 				GPIOC7	--> CLOSE_HAND
 				
+				// 串口通信对应引脚宏定义
+				#define MASTER_CTRL				GPIOA
+				#define MASTER_TXD 				GPIO_Pin_9
+				#define MASTER_RXD 				GPIO_Pin_10
+				
 				
 				
 			

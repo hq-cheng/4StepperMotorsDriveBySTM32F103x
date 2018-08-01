@@ -373,7 +373,7 @@
               <MiscControls></MiscControls>
               <Define>STM32F10X_HD,USE_STDPERIPH_DRIVER</Define>
               <Undefine></Undefine>
-              <IncludePath>..\USER;..\SYSTEM\delay;..\SYSTEM\sys;..\SYSTEM\usart;..\STM32F10x_FWLib\inc;..\CORE;..\HARDWARE\GPIO_Motor;..\HARDWARE\TIMER;..\HARDWARE\KEY;..\HARDWARE\EXTI;..\HARDWARE\PWM;..\HARDWARE\IronHand;..\HARDWARE\MOTOR_CTRL</IncludePath>
+              <IncludePath>..\USER;..\SYSTEM\delay;..\SYSTEM\sys;..\SYSTEM\usart;..\STM32F10x_FWLib\inc;..\CORE;..\HARDWARE\GPIO_Motor;..\HARDWARE\TIMER;..\HARDWARE\KEY;..\HARDWARE\EXTI;..\HARDWARE\PWM;..\HARDWARE\IronHand;..\HARDWARE\MOTOR_CTRL;..\HARDWARE\USART</IncludePath>
             </VariousControls>
           </Cads>
           <Aads>
@@ -471,6 +471,11 @@
               <FileType>1</FileType>
               <FilePath>..\HARDWARE\MOTOR_CTRL\motor.c</FilePath>
             </File>
+            <File>
+              <FileName>usart_master.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>..\HARDWARE\USART\usart_master.c</FilePath>
+            </File>
           </Files>
         </Group>
         <Group>
@@ -480,11 +485,6 @@
               <FileName>delay.c</FileName>
               <FileType>1</FileType>
               <FilePath>..\SYSTEM\delay\delay.c</FilePath>
-            </File>
-            <File>
-              <FileName>usart.c</FileName>
-              <FileType>1</FileType>
-              <FilePath>..\SYSTEM\usart\usart.c</FilePath>
             </File>
             <File>
               <FileName>sys.c</FileName>
