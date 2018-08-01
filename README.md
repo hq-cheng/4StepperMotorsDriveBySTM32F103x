@@ -117,22 +117,35 @@ TIM_SetAutoreload(TIMx,fpwm_arr)
 
 * 相关GPIO口： 
 	
-	> &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;				GPIOB5	(K1)
+	> &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;				GPIOB5	(K1) 
+	
 	> &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;				GPIOB6	(K2)				
+	
 	> &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;				GPIOB13 (K3)	//GPIOB7  (K3)
+	
 	> &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;				GPIOB14	(K4)	//GPIOB8  (K4)	
+	
 	> &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;				GPIOB9	(K5)
+	
 	> &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;				GPIOB10	(K6)
+	
 	> &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;				GPIOB11	(K7)
+	
 	> &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;				GPIOB12	(K8)
 * 效果： 		按下K1，顺时针转
 	
 	> &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;	   		按下K2，逆时针转;
+	
 	> &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;		   			按下K3，加速;
+	
 	> &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;		   		按下K4，减速 ;
+	
 	> &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;		   		按下K5，暂停;
+	
 	> &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;		   		按下K6，启动;
+	
 	> &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;		   		按下K7，计时加长;
+	
 	> &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;		   		按下K8，计时减少；
 
 
@@ -142,7 +155,7 @@ TIM_SetAutoreload(TIMx,fpwm_arr)
 
 * 附：重构顺序：
 
-	>	1. 键盘
+
 	>	1. 键盘
 			确认按键后返回相应键值
 			可以在主程序中根据键值设计响应程序
