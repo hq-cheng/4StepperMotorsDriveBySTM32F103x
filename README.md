@@ -1,5 +1,6 @@
 # 4StepperMotorsDriveBySTM32F103x
 基于 STM32F103x系列 单片机的三轴步进电机驱动程序
+
 /**
  *  Copyright 2018，程豪琪，哈尔滨工业大学（深圳）
  *  All Rights Reserved.
@@ -14,6 +15,7 @@
  * github：https://github.com/clearcumt
  * 博客：https://www.cnblogs.com/loveclear/
  * 谢谢你的指正！
+ 
 *************************************************************************/
 
 /********************************************************************************
@@ -24,12 +26,12 @@
 	> (MotorX)A4988--> GPIOC0-GPIO1
 	> GPIOC0 	--> ENABLE
 	> GPIOA1 	--> STEP(TIM2 CH2)
-	> GPIOC1	--> DIR
-				
+	> GPIOC1	--> DIR  
+	
 	> (MotorY)A4988--> GPIOC2-GPIO3
 	> GPIOC2 	--> ENABLE
 	> GPIOA7 	--> STEP(TM3 CH2)
-	> GPIOC3	--> DIR
+	> GPIOC3	--> DIR  
 	
 	> (MotorZ)A4988--> GPIOC4-GPIO5
 	> GPIOC4 	--> ENABLE
@@ -40,7 +42,8 @@
 	> GPIOB8	--> IRONHAND(TIM4 CH3)
 
 * 机械手（二八马达）控制信号使用GPIOC口
-	> GPIOC6	--> OPEN_HAND
+	> GPIOC6	--> OPEN_HAND  
+	
 	> GPIOC7	--> CLOSE_HAND
 	
 * 串口通信对应引脚宏定义
@@ -75,7 +78,7 @@ TIM_Cmd(TIM4,ENABLE);
 	
 ### 3.如何实时改变PWM的频率以改变电机的速度？
 
-```c++
+```c
 // fpwm_psc = 1，即为1分频，该函数内部已经作减一操作，故不用再减一
 TIM_ChangePrescaler(TIMx,fpwm_psc);	
 // 这里采用TIM_ChangePrescaler方法，因为占空比始终不变，例如可以为50%
@@ -83,35 +86,36 @@ TIM_SetAutoreload(TIMx,fpwm_arr)
 ```
 * （全步进模式）计算转速
 
-
-> 一个脉冲周期T = arr/[(72*1000000)/fpwm_psc] = 72*1000000/（fpwm_psc*arr）(s) ,f = 1/T (Hz)
-> 转速n = (f/200)*60 (r/min)，细分数1.8°，200个脉冲转一圈
-> 占空比			p = pulse_ccr / arr;
-						
+```c
+// 一个脉冲周期T = arr/[(72*1000000)/fpwm_psc] = 72*1000000/（fpwm_psc*arr）(s) ,f = 1/T (Hz)
+// 转速n = (f/200)*60 (r/min)，细分数1.8°，200个脉冲转一圈
+// 占空比			p = pulse_ccr / arr;
+```						
 				
 
 ### 4.键盘相关的GPIO接口说明：
 
 >  相关GPIO口： 
-*	&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;				GPIOB5	(K1)
-*	&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;				GPIOB6	(K2)				
-*	&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;				GPIOB13 (K3)	//GPIOB7  (K3)
-*	&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;				GPIOB14	(K4)	//GPIOB8  (K4)	
-*	&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;				GPIOB9	(K5)
-*	&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;				GPIOB10	(K6)
-*	&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;				GPIOB11	(K7)
-*	&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;				GPIOB12	(K8)
-*     效果： 		按下K1，顺时针转;
-*	&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;	   		按下K2，逆时针转;
-*  &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;		   			按下K3，加速;
-*	&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;		   		按下K4，减速 ;
-*	&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;		   		按下K5，暂停;
-*	&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;		   		按下K6，启动;
-*	&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;		   		按下K7，计时加长;
-*	&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;		   		按下K8，计时减少；
+> *	&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;				GPIOB5	(K1)
+> *	&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;				GPIOB6	(K2)				
+> *	&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;				GPIOB13 (K3)	//GPIOB7  (K3)
+> *	&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;				GPIOB14	(K4)	//GPIOB8  (K4)	
+> *	&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;				GPIOB9	(K5)
+> *	&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;				GPIOB10	(K6)
+> *	&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;				GPIOB11	(K7)
+> *	&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;				GPIOB12	(K8)
+> *     效果： 		按下K1，顺时针转;
+> *	&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;	   		按下K2，逆时针转;
+> *  &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;		   			按下K3，加速;
+> *	&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;		   		按下K4，减速 ;
+> *	&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;		   		按下K5，暂停;
+> *	&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;		   		按下K6，启动;
+> *	&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;		   		按下K7，计时加长;
+> *	&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;		   		按下K8，计时减少；
 
 
-\* @Version: Beta2.0
+\* @Version: Beta2.0  
+
 \* @Author: loveclear!
 
 * 附：重构顺序：
