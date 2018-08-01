@@ -2,19 +2,19 @@
 基于 STM32F103x系列 单片机的三轴步进电机驱动程序
 
 /**
- *  Copyright 2018，程豪琪，哈尔滨工业大学（深圳）
- *  All Rights Reserved.
+ \*  Copyright 2018，程豪琪，哈尔滨工业大学（深圳）
+ \*  All Rights Reserved.
  */
 
-/*********************************郑重声明****************************************
+/******************************* ***郑重声明*** ************************************
  
- * 该程序为本人所写，付出了大量的精力，现将其公开出来供大家参考学习；
- * 任何个人和组织不得未经授权将此程序用于商业行为！
- * 由于本人水平有限，程序难免出现错误，可以通过下面的联系方式联系本人
- * 邮箱：18s153717@stu.hit.edu.cn
- * github：https://github.com/clearcumt
- * 博客：https://www.cnblogs.com/loveclear/
- * 谢谢你的指正！
+\* 该程序为本人所写，付出了大量的精力，现将其公开出来供大家参考学习；
+\* 任何个人和组织不得未经授权将此程序用于商业行为！
+\* 由于本人水平有限，程序难免出现错误，可以通过下面的联系方式联系本人
+\* 邮箱：18s153717@stu.hit.edu.cn
+\* github：https://github.com/clearcumt
+\* 博客：https://www.cnblogs.com/loveclear/
+\* 谢谢你的指正！
  
 *************************************************************************/
 
@@ -24,26 +24,37 @@
 * 电机用GPIOC口
 
 	> (MotorX)A4988--> GPIOC0-GPIO1
+	> 
 	> GPIOC0 	--> ENABLE
+	> 
 	> GPIOA1 	--> STEP(TIM2 CH2)
+	> 
 	> GPIOC1	--> DIR  
+	> 
 	
 	> (MotorY)A4988--> GPIOC2-GPIO3
+	> 
 	> GPIOC2 	--> ENABLE
+	> 
 	> GPIOA7 	--> STEP(TM3 CH2)
+	> 
 	> GPIOC3	--> DIR  
 	
 	> (MotorZ)A4988--> GPIOC4-GPIO5
+	> 
 	> GPIOC4 	--> ENABLE
+	> 
 	> GPIOB7 	--> STEP(TIM4 CH2)
+	> 
 	> GPIOC5	--> DIR
+	>
 	
 * 机械手（伺服马达）控制信号使用GPIOB口
 	> GPIOB8	--> IRONHAND(TIM4 CH3)
 
 * 机械手（二八马达）控制信号使用GPIOC口
-	> GPIOC6	--> OPEN_HAND  
-	
+	> GPIOC6	--> OPEN_HAND
+	>   
 	> GPIOC7	--> CLOSE_HAND
 	
 * 串口通信对应引脚宏定义
@@ -95,7 +106,7 @@ TIM_SetAutoreload(TIMx,fpwm_arr)
 
 ### 4.键盘相关的GPIO接口说明：
 
->  相关GPIO口： 
+> * 相关GPIO口： 
 > *	&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;				GPIOB5	(K1)
 > *	&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;				GPIOB6	(K2)				
 > *	&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;				GPIOB13 (K3)	//GPIOB7  (K3)
@@ -104,7 +115,7 @@ TIM_SetAutoreload(TIMx,fpwm_arr)
 > *	&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;				GPIOB10	(K6)
 > *	&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;				GPIOB11	(K7)
 > *	&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;				GPIOB12	(K8)
-> *     效果： 		按下K1，顺时针转;
+> * 效果： 		按下K1，顺时针转
 > *	&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;	   		按下K2，逆时针转;
 > *  &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;		   			按下K3，加速;
 > *	&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;		   		按下K4，减速 ;
