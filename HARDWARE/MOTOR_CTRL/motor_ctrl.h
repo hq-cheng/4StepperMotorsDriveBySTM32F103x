@@ -18,7 +18,7 @@ void Change_Motor_Dir(TIM_TypeDef* MOTOx,unsigned char Dir);
 uint16_t Get_Motor_RunningState(TIM_TypeDef* MOTOx);
 void TIM_OCENSet(TIM_TypeDef* MOTOx, uint16_t OCx_ENR,FunctionalState NewState);
 void Set_Motor_Speed(TIM_TypeDef* MOTOx,uint16_t psc);
-
+void Annex_Seal_By(TIM_TypeDef* MOTOx, unsigned char Dir);
 #endif
 
 

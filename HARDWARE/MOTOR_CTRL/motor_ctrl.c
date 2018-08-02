@@ -288,4 +288,18 @@ uint16_t Get_Motor_RunningSpeed(TIM_TypeDef* MOTOx)
 		return 0;
 }
 
+/*******************************************************************************
+* 函 数 名         : Annex_Seal_By
+* 函数功能         : 启动Z轴电机执行盖章动作（分为：按下印章 Dir = 1，抬起印章 Dir = 1）
+* 输    入         : 无 
+* 输    出         : 无
+*******************************************************************************/
+
+void Annex_Seal_By(TIM_TypeDef* MOTOx, unsigned char Dir)
+{
+	Start_Motor_withS(MOTOx,Dir);
+	delay_s(1);
+	Stop_Motor_withS(MOTOx);
+}
+
 

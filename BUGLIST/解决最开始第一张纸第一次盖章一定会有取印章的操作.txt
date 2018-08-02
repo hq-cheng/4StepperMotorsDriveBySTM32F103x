@@ -1,0 +1,38 @@
+void ChangeSeal()
+{
+	static int i=0;
+	// 如果XY轴电机运动了，就不能有更换印章的动作
+	// 如果当前XY轴电机在复位点，先更换印章，再运动XY轴电机
+	if(motor1.isResetPoint && motor2.isResetPoint)
+	{	
+		if(rec_buffer.sbuf[i] != 0)
+		{
+			// 需要更换印章(包括初始第一次更换印章操作)
+			// 其实初始第一步不一定就需要更换
+			// 100张纸，只有最开始第一次一定会去抓取印章
+			// 而其余每一张纸的所有操作，第一次单步操作如果与上次使用相同就发送0，不同就发送1
+			// 这个时候只要处理最开始的那一张就行了，其余按照指令执行就行
+			// 所以初始那一张纸的需不需要更换，我给设置为11,其余需要更换设置为1
+			//if((rec_buffer.isNeedChange[i]) || (i == 0))
+			if((rec_buffer.isNeedChange[i]==1) || (rec_buffer.isNeedChange[i]==11))
+			{
+				Annex_Seal_By(MOTOZ,1);						// Z轴电机下放
+				// if(has seal) 打开机械手，放回印章;
+				// if(no seal)  执行下面的代码;
+				OpenHand();
+				delay_s(1);
+				CloseHand();
+				HoldHand();									// 获取印章成功
+				rec_buffer.sbuf[i] = 0;						// 串口缓冲区当前印章ID指令清0
+				rec_buffer.isNeedChange[i] = 0;				// 串口缓冲区当前操作是否需要更换印章指令清0
+				i++;
+				Annex_Seal_By(MOTOZ,0);	
+				delay_s(1);
+			}
+		}
+		else
+		{
+			i = 0;
+		}
+	}
+}

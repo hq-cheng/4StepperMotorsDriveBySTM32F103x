@@ -1,7 +1,5 @@
 #include "usart_master.h"
 
-unsigned char USART1_RX_COUNT = 0;
-
 // 串口USART1的GPIO口初始化
 void GPIO_USART1_Init()
 {
@@ -76,25 +74,76 @@ void USART1_Master_Init(u32 bound)
 	USART_Cmd(USART1,ENABLE);
 }
 
+// 初始化USART1接收缓冲区结构体参数
+void Init_USART1_Buffer()
+{
+	volatile REC_BUFFER* pbuffer = &rec_buffer;
+	int i;
+	pbuffer->buf_index = 0;
+	pbuffer->sbuf_index = 0;
+	pbuffer->isnc_index = 0;
+	
+	for(i=0;i<BUF_MAXSIZE;i++)								// 初始化清空缓存区，万一有内存残余呢
+	{
+		pbuffer->buf[i] = 0;
+		pbuffer->sbuf[i] = 0;
+		pbuffer->isNeedChange[i] = 0;
+	}
+}
+
 // 串口中断服务子程序
 void USART1_IRQHandler(void)
 {
-	u8 Res;
+	u8 Rec;
 	// 串口中断类型：接收中断请求
 	if(USART_GetFlagStatus(USART1, USART_IT_RXNE) != RESET)
 	{
-		Res = USART_ReceiveData(USART1);					//(USART1->DR);	//读取接收到的数据  // USARTx_DR读操作可以将标志位 RXNE 清0
-		if(Res == 0xEE)
+		Rec = USART_ReceiveData(USART1);					//(USART1->DR);	//读取接收到的数据  // USARTx_DR读操作可以将标志位 RXNE 清0
+		
+		if(Rec == 0xEE)										// 将 sbuf 数组的索引值清0
 		{
-			USART1_RX_COUNT = 0;
+			rec_buffer.buf_index = 0;
 		}
-		else
+		if(Rec == 0xEF)										// 将 isNeedChange 数组的索引值清0
 		{
-			buf[USART1_RX_COUNT] = Res;
-			USART1_RX_COUNT ++;
-			if(USART1_RX_COUNT > 200-1) USART1_RX_COUNT = 0;	
+			rec_buffer.isnc_index = 0;
 		}
-
+		if(Rec == 0xFF)										// 将 buf 数组的索引值清0
+		{
+			rec_buffer.sbuf_index = 0;
+		}
+		
+		
+		if((Rec & 0xF0) == 0xF0 && (Rec != 0xFF))			// 存取印章的 id 值到 sbuf 数组
+		{
+			rec_buffer.sbuf[rec_buffer.sbuf_index] = Rec;
+			rec_buffer.sbuf_index ++;
+			if(rec_buffer.sbuf_index > BUF_MAXSIZE-1) rec_buffer.sbuf_index = 0;
+		}
+		if(Rec == 0xED)										// 收到 0xED(don't change) 表示下一次操作不用更换印章
+		{
+			rec_buffer.isNeedChange[rec_buffer.isnc_index] = 0;
+			rec_buffer.isnc_index ++;
+			if(rec_buffer.isnc_index > 32-1) rec_buffer.isnc_index = 0;
+		}
+		if(Rec == 0xEC)										// 收到 0xEC(change) 表示下一次操作需要更换印章
+		{
+			rec_buffer.isNeedChange[rec_buffer.isnc_index] = 1;
+			rec_buffer.isnc_index ++;
+			if(rec_buffer.isnc_index > 32-1) rec_buffer.isnc_index = 0;
+		}
+		if(Rec == 0xEB)										// 收到 0xEB(be obliged to) 表示最开始第一次操作一定需要更换印章
+		{
+			rec_buffer.isNeedChange[rec_buffer.isnc_index] = 11;
+			rec_buffer.isnc_index ++;
+			if(rec_buffer.isnc_index > 32-1) rec_buffer.isnc_index = 0;
+		}
+		if(Rec <= 0xEA)										// 存取目标点坐标值到 buf 数组
+		{
+			rec_buffer.buf[rec_buffer.buf_index] = Rec;
+			rec_buffer.buf_index ++;
+			if(rec_buffer.buf_index > BUF_MAXSIZE-1) rec_buffer.buf_index = 0;	
+		}
 	}
 }
 

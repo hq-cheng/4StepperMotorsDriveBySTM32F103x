@@ -1,0 +1,75 @@
+﻿// 树莓派传输指令协议
+	0xEE		表示后面的值为目标点坐标值
+	0xEF		表示下一操作是否需要更换印章的判断值
+	0xFF		表示后面的值为印章坐标值
+	0xFx		印章坐标值，x为印章id=0,1,2,3,4,...,E(建议取1~6)
+	0x00~0xEA	坐标值（精度要求不高，高8位整数，低8位小数）
+	0xED		下一操作是否需要更换印章的判断值为0
+	0xEC		下一操作是否需要更换印章的判断值为1
+	0xEB		下一操作是否需要更换印章的判断值为11（最开始的第一次操作，一定会先去取印章）
+
+// 相关伪代码
+
+// 盖章位置在坐标原点
+// 树莓派传输信息示例：
+// 0xFF 0xF1,0xF2,0xF3,0xF4				----> s_buf[32] = {0xF1,0xF2,0xF3,0xF4}
+// 0xEF,0xEC,0xEC,0xEC,0xEC				----> isNeedChange[32] = {0xEC,0xEC,0xEC,0xEC}
+// 0xEE,0x44,0x55,0xE4,0x62,0xA0,0xA0,0x7E,0x67		----> buf[32] = {0x44,0x55,0xE4,0x62,0xA0,0xA0,0x7E,0x67}
+
+s_buf[32],buf[32],isNeedChange[32];
+	
+if Rec == 0xEE				// 准备接收目标点坐标值
+	buf_index = 0;
+if Rec == 0xEF				// 准备接收下一操作是否需要更换印章的判断值
+	inc_index = 0;
+if Rec == 0xFF				// 准备接收印章坐标值
+	s_buf_index = 0;
+
+if Rec & 0xF0 = 0xF0 && Rec != 0xFF	// 接收印章坐标值
+	s_buf[s_buf_index] = Rec;
+	s_buf_index ++;
+	if(s_buf_index > 32-1)
+		s_buf_index = 0;
+if Rec == 0xED				// 0xED(don't change) 接收下一操作是否需要更换印章的判断值0
+	isNeedChange[isnc_index] = 0;
+	isnc_index ++;
+	if(isnc_index > 32-1)
+		isnc_index = 0;
+if Rec == 0xEC				// 0xEC(change) 接收下一操作是否需要更换印章的判断值1
+	isNeedChange[isnc_index] = 1;
+	isnc_index ++;
+	if(isnc_index > 32-1)
+		isnc_index = 0;	 
+if Rec == 0xEB
+	isNeedChange[isnc_index] = 11;	// 0xEB(be obliged to) 接收下一操作是否需要更换印章的判断值11
+	isnc_index ++;
+	if(isnc_index > 32-1)
+		isnc_index = 0;	
+if Rec <= 0xEA				// 接收目标点坐标值
+	buf[buf_index] = Rex;
+	buf_index ++;
+	if(buf_index > 32-1)
+		buf_index = 0;
+
+FF F1 F2 F3 F4 EF ED EC EC EC EE 04 08 05 09 0A 07 05 05
+
+FF F1 F2 F3 F4 EF EB EC EC EC EE 04 08 05 09 0A 07 05 05
+
+FF F1 F1 F1 F1 EF ED ED ED ED EE 04 08 05 09 0A 07 05 05
+
+// 出现问题
+FF F1 F1 F1 F1 EF ED EC ED EC EE 04 08 05 09 0A 07 05 05
+
+// 调试接收的每次操作发送给电脑的指令
+// all
+F1 F1 F1 F1 00 01 00 01 04 08 05 09 0A 07 05 05 
+// isNeedChange[]
+00 01 00 01 
+00 01 00 01 
+00 01 00 01 
+00 01 00 01
+// 可以看出没有清零
+
+// 出现一个问题，就是按照我的逻辑
+// 只有执行了取印章的操作id数组和是否更换印章数组当前的元素才会清0
+// 实际上， 取印章的操作id数组和是否更换印章数组当前的元素清零是在XY轴动了一次才清0
