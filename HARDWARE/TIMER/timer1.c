@@ -1,6 +1,6 @@
 /*
  *
- *  Copyright 2018，程豪琪，哈尔滨工业大学（深圳）
+ *  Copyright 2018，程豪琪，哈尔滨工业大学
  *  All Rights Reserved.
  */
 /*
@@ -73,7 +73,7 @@ void TIM1_UP_IRQHandler(void)
 	if(TIM_GetITStatus(TIM1,TIM_IT_Update) != RESET)
 	{
 		TIM_ClearITPendingBit(TIM1,TIM_IT_Update);	
-		if(count_time == motor1.totalTime * 1000)
+		if(count_time == motor1.totalTime)	// 当达到指定时间motor1.totaltime（ms）后，电机到达目标点		
 		{
 			Stop_Motor_withS(MOTOX);
 			if(motor1.nextMove == 0)		// 如果是正向过程，到达目的地停止
@@ -88,7 +88,7 @@ void TIM1_UP_IRQHandler(void)
 			}
 		}
 		
-		if(count_time == motor2.totalTime * 1000)
+		if(count_time == motor2.totalTime)
 		{
 			Stop_Motor_withS(MOTOY);
 			if(motor2.nextMove == 0)

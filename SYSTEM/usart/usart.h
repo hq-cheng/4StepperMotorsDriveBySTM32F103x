@@ -1,3 +1,7 @@
+// 以下文件为正点原子@ALIENTEK开发
+// 引用转载参照下面具体说明
+// 未经正点原子@ALIENTEK允许，不得用于商业用途
+
 #ifndef __USART_H
 #define __USART_H
 #include "stdio.h"	

@@ -1,6 +1,6 @@
 /*
  *
- *  Copyright 2018，程豪琪，哈尔滨工业大学（深圳）
+ *  Copyright 2018，程豪琪，哈尔滨工业大学
  *  All Rights Reserved.
  */
 /*

@@ -1,6 +1,6 @@
 /*
  *
- *  Copyright 2018，程豪琪，哈尔滨工业大学（深圳）
+ *  Copyright 2018，程豪琪，哈尔滨工业大学
  *  All Rights Reserved.
  */
 /*
@@ -34,6 +34,7 @@
 
 void Main_Init(void);
 void Step(void);
+void Compute_Time_Of(unsigned char MOTOID,unsigned char H,unsigned char L);
 
 
 // 定时器相关变量
@@ -58,35 +59,9 @@ volatile MOTOR_CONTROL motor3;
 
 int main(void)
 {
-#if USART1_DEBUG
-	int k;
-#endif
 	Main_Init();
 	TIM_Cmd(TIM1,DISABLE);
 	USART1_Master_Init(9600);
-	delay_s(10);
-
-#if USART1_DEBUG
-	for(k=0;k<4;k++)
-	{
-		USART_SendData(USART1,rec_buffer.sbuf[k]);
-		// 等待发送缓存器清空（数据已经开始发送）
-		while(USART_GetFlagStatus(USART1, USART_FLAG_TXE) == RESET);
-	}
-	for(k=0;k<4;k++)
-	{
-		USART_SendData(USART1,rec_buffer.isNeedChange[k]);
-		// 等待发送缓存器清空（数据已经开始发送）
-		while(USART_GetFlagStatus(USART1, USART_FLAG_TXE) == RESET);
-	}
-	for(k=0;k<8;k++)
-	{
-		USART_SendData(USART1,rec_buffer.buf[k]);
-		// 等待发送缓存器清空（数据已经开始发送）
-		while(USART_GetFlagStatus(USART1, USART_FLAG_TXE) == RESET);
-	}	
-
-#endif
 
 	while(1)
 	{												// 主循环程序
@@ -128,35 +103,20 @@ void Main_Init()
 	GPIO_Key_Init();								// 键盘对应IO口初始化设置
 	GPIO_IronHand_Init();							// 机械手八二马达对应IO口初始化设置
 	
-	// 初始化三个电机结构体变量的参数
-	Init_Motor_Struct(1);
-	Init_Motor_Struct(2);
-	Init_Motor_Struct(3);
-	
 	Init_USART1_Buffer();							// 初始化SUART1接收缓冲区结构体变量的参数
-	
+	// 初始化三个电机结构体变量的参数
+	Init_Motor_Struct(1); Init_Motor_Struct(2); Init_Motor_Struct(3);
 	// 电机A4988驱动器使能,
-	Set_Motor_EN(MOTOX,motor1.enable);
-	Set_Motor_EN(MOTOY,motor2.enable);
-	Set_Motor_EN(MOTOZ,motor3.enable);
-	
+	Set_Motor_EN(MOTOX,motor1.enable); Set_Motor_EN(MOTOY,motor2.enable); Set_Motor_EN(MOTOZ,motor3.enable);
 	// 电机方向设置为反转(0)
-	Set_Motor_Dir(MOTOX,motor1.direction);
-	Set_Motor_Dir(MOTOY,motor2.direction);
-	Set_Motor_Dir(MOTOZ,motor3.direction);
-	
+	Set_Motor_Dir(MOTOX,motor1.direction); Set_Motor_Dir(MOTOY,motor2.direction); Set_Motor_Dir(MOTOZ,motor3.direction);
 	// 各个脉冲通道初始化后，默认关闭pwm脉冲输出使能
-	TIM2_PWM_Config_Init(100,956);					// MotorX
-	TIM3_PWM_Config_Init(100,956);					// MotorY	
-	TIM4_PWM_Config_Init(100,956);					// MotorZ
+	TIM2_PWM_Config_Init(100,956); TIM3_PWM_Config_Init(100,956); TIM4_PWM_Config_Init(100,956);					
 	
-	// 定时器1初始化
-	delay_ms(1000);	
-	TIM1_Config_Init(1000,72);						// 1ms
+	delay_ms(1000);
+	// 定时器1初始化,1ms	
+	TIM1_Config_Init(1000,72);
 }
-
-
-
 
 
 /*******************************************************************************
@@ -169,31 +129,18 @@ void Step()
 {
 
 	static int i=0,k=0;
+	
+#if USART1_DEBUG
 	int j;
+#endif	
 	
 	if(motor1.isResetPoint && motor2.isResetPoint)
 	{
-
-#if USART1_DEBUG
-		for(j=0;j<4;j++)
-		{
-			USART_SendData(USART1,rec_buffer.sbuf[j]);
-			// 等待发送缓存器清空（数据已经开始发送）
-			while(USART_GetFlagStatus(USART1, USART_FLAG_TXE) == RESET);
-		}
-		for(j=0;j<4;j++)
-		{
-			USART_SendData(USART1,rec_buffer.isNeedChange[j]);
-			// 等待发送缓存器清空（数据已经开始发送）
-			while(USART_GetFlagStatus(USART1, USART_FLAG_TXE) == RESET);
-		}
-#endif
-		
 		TIM_Cmd(TIM1,DISABLE);
 		motor1.totalTime = 0;	// 当一次单步操作完成，步进电机复位到原点后，
 		motor2.totalTime = 0;	// 将上次移动所需totalTime清零，防止电机瞎几把乱动
 		
-		if(rec_buffer.sbuf[k] != 0)
+		if(!rec_buffer.issbufNull)
 		{
 			// 需要更换印章(包括初始第一次更换印章操作，rec_buffer.isNeedChange[k]==11)
 			if((rec_buffer.isNeedChange[k]==1) || (rec_buffer.isNeedChange[k]==11))
@@ -213,23 +160,42 @@ void Step()
 		{
 			k = 0;
 		}
+
 		
-		if(rec_buffer.buf[i]!=0 && rec_buffer.buf[i+1]!=0)
+		// 如果 buf 数组接收到数据，不为空
+		if(!rec_buffer.isbufNull)
 		{
-			// 确定电机移动坐标
-			motor1.destn = rec_buffer.buf[i];
-			motor2.destn = rec_buffer.buf[i+1];
-			// 确定所需时间
-			motor1.totalTime = rec_buffer.buf[i];
-			motor2.totalTime = rec_buffer.buf[i+1];
+			// 确定所需时间,移动坐标
+			Compute_Time_Of(motor1.id,rec_buffer.buf[i],rec_buffer.buf[i+1]);
+			Compute_Time_Of(motor2.id,rec_buffer.buf[i+2],rec_buffer.buf[i+3]);
+
 			// 串口缓冲区当前目标点坐标指令清0
-			rec_buffer.buf[i] = 0;
-			rec_buffer.buf[i+1] = 0;
-			
+			rec_buffer.buf[i] = 0; rec_buffer.buf[i+1] = 0; rec_buffer.buf[i+2] = 0; rec_buffer.buf[i+3] = 0;	
 			// XY轴动了一次，代表着下一次检索 sbuf 和 isNeedChange 的下一个元素
 			rec_buffer.sbuf[k] = 0;						// 串口缓冲区当前印章ID指令清0
 			rec_buffer.isNeedChange[k] = 0;				// 串口缓冲区当前操作是否需要更换印章指令清0
+			// 检查缓冲区数组是否为空
+			rec_buffer.isbufNull = Check_Null_Buffer(rec_buffer.buf_id);
+			rec_buffer.issbufNull = Check_Null_Buffer(rec_buffer.sbuf_id);
 			k++;
+			
+#if USART1_DEBUG				
+			for(j=0;j<17;j++)
+			{
+				if(j < 16)
+				{
+					USART_SendData(USART1,rec_buffer.buf[j]);
+					// 等待发送缓存器清空（数据已经开始发送）
+					while(USART_GetFlagStatus(USART1, USART_FLAG_TXE) == RESET);					
+				}
+
+				if(j == 16)
+				{
+					USART_SendData(USART1,'\n');
+					while(USART_GetFlagStatus(USART1, USART_FLAG_TXE) == RESET);
+				}
+			}
+#endif			
 			
 			Start_Motor_withS(MOTOX,0);
 			Start_Motor_withS(MOTOY,0);
@@ -238,16 +204,84 @@ void Step()
 			motor1.isResetPoint = 0;
 			motor2.isResetPoint = 0;				// 电机移动偏离复位点，更新状态
 			count_time = 0;
+			i += 4;
 			TIM_Cmd(TIM1,ENABLE);					// 当接收到并且已经传入给电机对应参数的指令，打开定时器
-			i += 2;
 		}
 		else
 		{
+			// 如果 buf 数组为空
 			i = 0;
 		}
 	}
 	
 }
+
+
+/*******************************************************************************
+* 函 数 名         : Compute_Time_Of
+* 函数功能         : 确定所需时间,移动坐标
+* 输    入         : MOTOID(电机结构体变量参数的id值）
+					H（buf 数组中坐标值的高8位）
+					L（buf 数组中坐标值的低8位）
+* 输    出         : 无
+*******************************************************************************/
+void Compute_Time_Of(unsigned char MOTOID,unsigned char H,unsigned char L)
+{
+	int qian,bai,shi,ge;
+	qian = H/16;
+	bai = H%16;
+	shi = L/16;
+	ge = L%16;
+	switch(MOTOID)
+	{
+		case 1:
+			motor1.totalTime = qian*1000 + bai*100 + shi*10 + ge*1;
+			motor1.destn = motor1.totalTime * 50.0 / 60;				// 假定电机转速 500rpm，每转一圈前进 6mm
+			break;
+		case 2:
+			motor2.totalTime = qian*1000 + bai*100 + shi*10 + ge*1;
+			motor2.destn = motor2.totalTime * 50.0 / 60;
+			break;
+	}
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+	
+
+
 
 
 

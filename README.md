@@ -3,7 +3,7 @@
 
 /**
 
- \*  Copyright 2018，程豪琪，哈尔滨工业大学（深圳）
+ \*  Copyright 2018，程豪琪，哈尔滨工业大学
 
  \*  All Rights Reserved.
 
@@ -134,9 +134,9 @@ TIM_SetAutoreload(TIMx,fpwm_arr)
 	> &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;				GPIOB12	(K8)
 * 效果： 		按下K1，顺时针转
 	
-	> &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;	   		按下K2，逆时针转;
+	> &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;	   			按下K2，逆时针转;
 	>
-	> &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;		   			按下K3，加速;
+	> &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;		   		按下K3，加速;
 	>
 	> &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;		   		按下K4，减速 ;
 	>

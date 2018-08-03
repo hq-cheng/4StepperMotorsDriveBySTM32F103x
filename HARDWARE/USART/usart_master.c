@@ -1,3 +1,24 @@
+/*
+ *
+ *  Copyright 2018，程豪琪，哈尔滨工业大学
+ *  All Rights Reserved.
+ */
+/*
+ * *******************************郑重声明****************************************
+ 
+ * 该程序为本人所写，付出了大量的精力，现将其公开出来供大家参考学习；
+ * 任何个人和组织不得未经授权将此程序转载，或用于商业行为！
+ * 
+ * 由于本人水平有限，程序难免出现错误，可以通过下面的联系方式联系本人
+ * 谢谢你的指正！
+ *
+ * 邮箱：18s153717@stu.hit.edu.cn
+ * github：https://github.com/clearcumt
+ * 博客：https://www.cnblogs.com/loveclear/
+ * 
+ * ******************************************************************************
+ */
+ 
 #include "usart_master.h"
 
 // 串口USART1的GPIO口初始化
@@ -79,6 +100,9 @@ void Init_USART1_Buffer()
 {
 	volatile REC_BUFFER* pbuffer = &rec_buffer;
 	int i;
+	pbuffer->buf_id = 1;
+	pbuffer->sbuf_id = 2;
+	pbuffer->isnc_id = 3;
 	pbuffer->buf_index = 0;
 	pbuffer->sbuf_index = 0;
 	pbuffer->isnc_index = 0;
@@ -89,6 +113,50 @@ void Init_USART1_Buffer()
 		pbuffer->sbuf[i] = 0;
 		pbuffer->isNeedChange[i] = 0;
 	}
+	
+	for(i=0;i<SBUF_MAXSIZE;i++)	
+	{
+		pbuffer->sbuf[i] = 0;
+		pbuffer->isNeedChange[i] = 0;
+	}
+	
+	for(i=0;i<ISNC_MAXSIZE;i++)	
+	{
+		pbuffer->isNeedChange[i] = 0;
+	}
+	
+	pbuffer->isbufNull = 1;
+	pbuffer->issbufNull = 1;
+	pbuffer->isisncNull = 1;
+	
+}
+
+// 检查缓冲区是否为空
+unsigned char Check_Null_Buffer(unsigned char BUF_ID)
+{
+	int i;
+	switch(BUF_ID)
+	{
+		case 1:
+			for(i=0;i<BUF_MAXSIZE;i++)
+			{
+				if(rec_buffer.buf[i] != 0) return 0;
+			}
+			break;
+		case 2:
+			for(i=0;i<SBUF_MAXSIZE;i++)	
+			{
+				if(rec_buffer.sbuf[i] != 0) return 0;
+			}
+			break;
+		case 3:
+			for(i=0;i<ISNC_MAXSIZE;i++)	
+			{
+				if(rec_buffer.isNeedChange[i] != 0) return 0;
+			}
+			break;
+	}
+	return 1;
 }
 
 // 串口中断服务子程序
@@ -117,33 +185,40 @@ void USART1_IRQHandler(void)
 		if((Rec & 0xF0) == 0xF0 && (Rec != 0xFF))			// 存取印章的 id 值到 sbuf 数组
 		{
 			rec_buffer.sbuf[rec_buffer.sbuf_index] = Rec;
-			rec_buffer.sbuf_index ++;
-			if(rec_buffer.sbuf_index > BUF_MAXSIZE-1) rec_buffer.sbuf_index = 0;
+			rec_buffer.sbuf_index ++;		
+			if(rec_buffer.sbuf_index > SBUF_MAXSIZE-1) rec_buffer.sbuf_index = 0;
 		}
 		if(Rec == 0xED)										// 收到 0xED(don't change) 表示下一次操作不用更换印章
 		{
 			rec_buffer.isNeedChange[rec_buffer.isnc_index] = 0;
-			rec_buffer.isnc_index ++;
-			if(rec_buffer.isnc_index > 32-1) rec_buffer.isnc_index = 0;
+			rec_buffer.isnc_index ++;						
+			if(rec_buffer.isnc_index > ISNC_MAXSIZE-1) rec_buffer.isnc_index = 0;
 		}
 		if(Rec == 0xEC)										// 收到 0xEC(change) 表示下一次操作需要更换印章
 		{
 			rec_buffer.isNeedChange[rec_buffer.isnc_index] = 1;
-			rec_buffer.isnc_index ++;
-			if(rec_buffer.isnc_index > 32-1) rec_buffer.isnc_index = 0;
+			rec_buffer.isnc_index ++;						
+			if(rec_buffer.isnc_index > ISNC_MAXSIZE-1) rec_buffer.isnc_index = 0;
 		}
 		if(Rec == 0xEB)										// 收到 0xEB(be obliged to) 表示最开始第一次操作一定需要更换印章
 		{
 			rec_buffer.isNeedChange[rec_buffer.isnc_index] = 11;
-			rec_buffer.isnc_index ++;
-			if(rec_buffer.isnc_index > 32-1) rec_buffer.isnc_index = 0;
+			rec_buffer.isnc_index ++;				
+			if(rec_buffer.isnc_index > ISNC_MAXSIZE-1) rec_buffer.isnc_index = 0;
 		}
-		if(Rec <= 0xEA)										// 存取目标点坐标值到 buf 数组
+		if(Rec <= 0xE9)										// 存取目标点坐标值到 buf 数组
 		{
 			rec_buffer.buf[rec_buffer.buf_index] = Rec;
 			rec_buffer.buf_index ++;
 			if(rec_buffer.buf_index > BUF_MAXSIZE-1) rec_buffer.buf_index = 0;	
 		}
+		if(Rec == 0xEA)
+		{
+			rec_buffer.isbufNull = 0;						// buf 数组收到数据，不为空
+			rec_buffer.isbufNull = 0;						// sbuf 数组收到数据，不为空
+			rec_buffer.isisncNull = 0;						// isNeedChange 数组收到数据不为空
+		}
+		
 	}
 }
 
