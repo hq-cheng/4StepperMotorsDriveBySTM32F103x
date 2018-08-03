@@ -29,7 +29,7 @@ void OpenHand(void)
 {
 	HAND_OPEN = 1;
 	HAND_CLOSE = 0;
-	delay_ms(70);	
+	delay_ms(50);	
 	HAND_OPEN = 0;
 	HAND_CLOSE = 0;
 }
@@ -38,7 +38,7 @@ void CloseHand(void)
 {
 	HAND_OPEN = 0;
 	HAND_CLOSE = 1;
-	delay_ms(70);
+	delay_ms(50);
 	HAND_OPEN = 0;
 	HAND_CLOSE = 0;
 }

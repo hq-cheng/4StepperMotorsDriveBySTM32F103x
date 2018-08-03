@@ -49,7 +49,7 @@ uint16_t Key_Flag = 0;
 volatile REC_BUFFER rec_buffer;
 
 // 自己测试/找bug的时候，设置为1
-#define USART1_DEBUG 1
+#define USART1_DEBUG 0
 
 
 // 主函数文件中定义电机的结构体变量
@@ -73,8 +73,9 @@ int main(void)
 			Annex_Seal_By(MOTOZ,1);					// 执行盖章动作,按下印章
 			delay_s(1);
 			Annex_Seal_By(MOTOZ,0);					// 执行盖章动作,抬起印章
+			delay_s(1);
 			Start_Motor_withS(MOTOX,1);
-			Start_Motor_withS(MOTOY,1);
+			Start_Motor_withS(MOTOY,0);
 			motor1.nextMove = 1;					// 反向过程
 			motor2.nextMove = 1;
 			motor1.isDestn = 0;						// 电机移动偏离目标点，更新状态
@@ -198,7 +199,7 @@ void Step()
 #endif			
 			
 			Start_Motor_withS(MOTOX,0);
-			Start_Motor_withS(MOTOY,0);
+			Start_Motor_withS(MOTOY,1);
 			motor1.nextMove = 0;					// 正向过程
 			motor1.nextMove = 0;
 			motor1.isResetPoint = 0;
