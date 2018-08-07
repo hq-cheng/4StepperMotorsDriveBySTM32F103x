@@ -147,6 +147,10 @@ TIM_SetAutoreload(TIMx,fpwm_arr)
 	> &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;		   		按下K7，计时加长;
 	>
 	> &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;		   		按下K8，计时减少；
+	
+### 5. UC/OSII系统使用说明：
+	> sys.h 文件中 SYSTEM_SUPPORT_UCOS 置1
+	> stm32f10x_it.c 文件中 USE_UCOSII 置1（实际 stm32f10x_it.c 这个文件没有在我的项目中用到）
 
 
 \* @Version: Beta2.0  

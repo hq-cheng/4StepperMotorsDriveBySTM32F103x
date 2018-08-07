@@ -47,7 +47,9 @@
 #include "stm32f10x_it.h" 
 
 
- 
+// 如果使用了UCOSII系统置1
+#define USE_UCOSII		0
+
 void NMI_Handler(void)
 {
 }
@@ -92,15 +94,20 @@ void SVC_Handler(void)
 void DebugMon_Handler(void)
 {
 }
- 
-void PendSV_Handler(void)
-{
-}
- 
+
+#if USE_UCOSII
+
+// 如果没有使用 UCOSII 操作系统，才会编译下面的中断服务子程序
+#else
+// 使用 UCOSII 系统时，PendSV_Handler已经在 os-cpu_a.asm 文件中定义了
+//void PendSV_Handler(void)
+//{
+//}
+
 void SysTick_Handler(void)
 {
 }
-
+#endif
 /******************************************************************************/
 /*                 STM32F10x Peripherals Interrupt Handlers                   */
 /*  Add here the Interrupt Handler for the used peripheral(s) (PPP), for the  */
