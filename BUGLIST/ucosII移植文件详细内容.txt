@@ -1,0 +1,69 @@
+// *********************滴答定时器SysTick********************
+
+// 1.配置滴答定时器SysTick，定期的产生异常请求作为系统的时基
+
+void SysTick_Init()	 
+{
+	// 自动重装
+	u32 reload;
+	SysTick_CLKSourceConfig(SysTick_CLKSource_HCLK_Div8);	
+	fac_us=SystemCoreClock/8000000;		//为系统时钟的1/8  
+	 
+
+	reload=SystemCoreClock/8000000;		//每秒钟的计数次数 单位为K	   
+	reload*=1000000/OS_TICKS_PER_SEC;	//根据OS_TICKS_PER_SEC设定溢出时间
+						//reload为24位寄存器,最大值:16777216,在72M下,约合1.86s左右	
+	fac_ms=1000/OS_TICKS_PER_SEC;		//代表ucos可以延时的最少单位
+	//开启SYSTICK中断	   
+	SysTick->CTRL|=SysTick_CTRL_TICKINT_Msk;   	
+	SysTick->LOAD=reload; 			//每1/OS_TICKS_PER_SEC秒中断一次	
+	SysTick->CTRL|=SysTick_CTRL_ENABLE_Msk; //开启SYSTICK   
+}
+
+// 2. 编写SysTick中断服务程序
+void SysTick_Handler(void)
+{	
+	// 系统开始跑了，才执行正常的调度处理
+	if(OS_running)
+	{			   
+		OSIntEnter();	//进入中断
+    		OSTimeTick();       //调用ucos的时钟服务程序   
+    		OSIntExit();        //触发任务切换软中断
+	}
+}
+
+// *********************os_cpu_a.asm********************
+
+// 使用IMPORT导入了外部c文件的某些定义到asm文件，用来帮助底层(.asm)的实现，例如：例如导入(.c)OSRunning，用来判断系统是否在跑；
+// 和EXPORT将该asm文件的定义导出到c文件中，供开发人员使用，例如：(.asm)OSStartHighRdy由外部OSStart()调用，用来开启多任务；
+
+// 因为设计到Cortex-M3内核的相关配置，单纯利用C语言很难实现，所以采用汇编的形式进行底层实现，然后在通过链接器连接，调用就行了
+
+// 1. 定义PendSV中断优先级和SysTick中断优先级都为最低
+
+// 2. 定义了开关中断的子程序（PRIMASK）
+
+// 3. 定义了开启多任务以及开启多任务失败的子程序
+
+// 4. 定义了任务切换设置相关的子程序
+
+// 5. 定义了PendSV_Handler中断服务子程序，用于实现在PendSV中实现任务切换 
+
+// *********************os_cpu.h********************
+
+// 定义与编译器无关的数据类型
+
+// 定义了堆栈的增长方向，任务级切换的宏定义OS_TASK_SW
+
+// 定义进入临界段的方法
+#define  OS_CRITICAL_METHOD   3
+#if OS_CRITICAL_METHOD == 3
+#define  OS_ENTER_CRITICAL()  {cpu_sr = OS_CPU_SR_Save();}		
+#define  OS_EXIT_CRITICAL()   {OS_CPU_SR_Restore(cpu_sr);}
+#endif
+#if OS_CRITICAL_METHOD == 3u                      /* See OS_CPU_A.ASM                                  */
+	OS_CPU_SR  OS_CPU_SR_Save(void);
+	void       OS_CPU_SR_Restore(OS_CPU_SR cpu_sr);
+#endif
+// 
+
