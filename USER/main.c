@@ -49,7 +49,7 @@ uint16_t Key_Flag = 0;
 volatile REC_BUFFER rec_buffer;
 
 // 自己测试/找bug的时候，设置为1
-#define USART1_DEBUG 0
+#define USART1_DEBUG 1
 
 
 // 主函数文件中定义电机的结构体变量
@@ -149,10 +149,10 @@ void Step()
 				Annex_Seal_By(MOTOZ,1);						// Z轴电机下放
 				// if(has seal) 打开机械手，放回印章;
 				// if(no seal)  执行下面的代码;
-				OpenHand();
+				Get_Seal_By(1,3000,50);						// 二八步进电机顺时针旋转一圈，打开机械手手掌
 				delay_s(1);
-				CloseHand();
-				HoldHand();									// 获取印章成功
+				Get_Seal_By(0,3000,50);						// 二八步进电机逆时针旋转一圈，收拢机械手手掌
+															// 获取印章成功
 				Annex_Seal_By(MOTOZ,0);	
 				delay_s(1);
 			}
@@ -217,7 +217,6 @@ void Step()
 	
 }
 
-
 /*******************************************************************************
 * 函 数 名         : Compute_Time_Of
 * 函数功能         : 确定所需时间,移动坐标
@@ -246,77 +245,4 @@ void Compute_Time_Of(unsigned char MOTOID,unsigned char H,unsigned char L)
 	}
 }
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-	
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-	
 

@@ -58,13 +58,11 @@
 	> GPIOC5	--> DIR
 	>
 	
-* 机械手（伺服马达）控制信号使用GPIOB口
-	> GPIOB8	--> IRONHAND(TIM4 CH3)
-
-* 机械手（二八马达）控制信号使用GPIOC口
-	> GPIOC6	--> OPEN_HAND
-	>   
-	> GPIOC7	--> CLOSE_HAND
+* 机械手（二八步进电机）控制信号使用GPIOC口
+	> GPIOC6	--> MotorH_A
+	> GPIOC7	--> MotorH_B	
+	> GPIOC8	--> MotorH_C
+	> GPIOC9	--> MotorH_D
 	
 * 串口通信对应引脚宏定义
 ```c

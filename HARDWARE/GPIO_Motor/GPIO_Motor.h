@@ -60,6 +60,12 @@
 #define MotorY_DIR_Bit PCout(3)
 #define MotorZ_DIR_Bit PCout(5)
 
+// 二八步进电机机械手控制引脚
+#define MotorH_A 	GPIO_Pin_6
+#define MotorH_B 	GPIO_Pin_7
+#define MotorH_C 	GPIO_Pin_8
+#define MotorH_D 	GPIO_Pin_9
+
 
 void GPIO_Motor_Init(void);	// 电机引脚对应GPIO口初始化
 void TIM2_GPIO_PWM_Init(void);

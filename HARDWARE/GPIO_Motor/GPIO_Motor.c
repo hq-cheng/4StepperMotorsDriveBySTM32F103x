@@ -109,11 +109,11 @@ void GPIO_IronHand_Init()
 	// 对应IO端口时钟使能
 	RCC_APB2PeriphClockCmd(RCC_APB2Periph_GPIOC,ENABLE);
 
-	// 机械手GPIOC6(HAND_OPEN)，或GPIOC7(HAND_CLOSE)
-	GPIO_InitStructure.GPIO_Pin = GPIO_Pin_6|GPIO_Pin_7;
+	// 机械手二八步进电机控制引脚
+	GPIO_InitStructure.GPIO_Pin = MotorH_A|MotorH_B|MotorH_C|MotorH_D;
 	GPIO_InitStructure.GPIO_Mode = GPIO_Mode_Out_PP;		// 推挽输出
 	GPIO_InitStructure.GPIO_Speed = GPIO_Speed_50MHz;
 	GPIO_Init(GPIOC,&GPIO_InitStructure);				
-	GPIO_ResetBits(GPIOC, GPIO_Pin_6|GPIO_Pin_7);
+	GPIO_ResetBits(GPIOC, MotorH_A|MotorH_B|MotorH_C|MotorH_D);
 }
 
