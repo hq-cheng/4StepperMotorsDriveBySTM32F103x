@@ -60,8 +60,11 @@
 	
 * 机械手（二八步进电机）控制信号使用GPIOC口
 	> GPIOC6	--> MotorH_A
+	>
 	> GPIOC7	--> MotorH_B	
+	>
 	> GPIOC8	--> MotorH_C
+	>
 	> GPIOC9	--> MotorH_D
 	
 * 串口通信对应引脚宏定义
