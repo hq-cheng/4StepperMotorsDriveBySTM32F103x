@@ -1,0 +1,112 @@
+// ucosII任务管理
+// ucoII多达64个任务，以优先级为各自标识号ID
+// 其中8个任务保留，56个应用任务供用户使用
+
+// 1. 创建任务的系统服务函数
+
+// 1.1 OsTaskCreate() 函数
+
+#if OS_TASK_CREATE_EN > 0u
+INT8U  OSTaskCreate (void   (*task)(void *p_arg),	// 任务代码指针
+                     void    *p_arg,				// 任务参数指针
+                     OS_STK  *ptos,					// 任务栈的栈顶指针
+                     INT8U    prio)					// 任务的优先级
+{
+    OS_STK    *psp;
+    INT8U      err;
+#if OS_CRITICAL_METHOD == 3u                 /* Allocate storage for CPU status register               */
+    OS_CPU_SR  cpu_sr = 0u;
+#endif
+
+// 1.2 OSTaskCreateExt() 函数
+
+// 2. 任务主函数
+
+void my_task(void *pdata)
+{
+	while(1)
+	{
+		// do something
+		// 任务可以自我删除，也就是让系统内核不知道该任务的存在
+		// OSTaskDel(OS_PRIO_SELF);
+	}
+}
+
+// 3. 空闲任务和统计任务
+
+// 3.1 内核总是创建一个空闲任务（最低优先级，当其他任务都未在执行时，空闲任务开始）
+
+// 空闲任务 OSTaskIdle() 函数，把32位计数器OSIdleCtr加1，以供 统计任务 所使用
+
+// 3.2 统计任务 OSTaskStat() 函数，提供运行时间统计，每秒钟运行一次，计算当前的CPU利用率
+
+// 4. 数据结构： OS_TCB 任务控制块，存放任务的各种管理信息
+		----> 任务堆栈指针
+		----> 任务的状态
+		----> 任务优先级
+		----> 任务链表指针
+// 创建任务的同时，任务控制块OS_TCB将被赋值
+
+typedef struct os_tcb {     
+    INT16U           OSTCBId;   	// 任务的ID
+    OS_EVENT        *OSTCBEventPtr; // 事件指针      
+    void            *OSTCBMsg;      // 消息指针
+    INT8U            OSTCBStat;     // 任务的状态
+    INT8U            OSTCBPrio;     // 任务的优先级    
+	// others ...
+} OS_TCB;
+
+// 4.1 所有的任务控制块分属于两条不同的链表
+		----> 单向的空闲链表
+		----> 双向的使用链表（能快速的插入删除）
+// 系统初始化的时候，所有TCB被链接到空闲链表
+// 任务创建的时候，对应TCB被链接到使用链表；任务删除的时候从使用链表中删除
+
+// 4.2 任务的状态
+		----> 4.2.1 休眠状态，任务存在与内存空间中，但内核不可见
+// 		OSTaskDel() 进入休眠状态
+// 		OSTaskCreate() 或 OSTaskCreateExt() 进入就绪状态	
+
+		----> 4.2.2 就绪状态，只要从CPU中获取资源就可以执行任务
+// 		所有的就绪任务中，具有最高优先级的任务被选中去执行
+// 		每个任务的就绪状态标志放在就绪表（OSRdyGrp 和 OSRdyTb1[]）中
+// 		它是一个位图，任务相应位置0或置1表示是否处于就绪状态
+
+		----> 4.2.3 运行状态，任务在CPU上运行
+// 		任务在运行时，被抢占了CPU，就回到就绪状态
+// 		任务在运行时，若未关闭中断，则有可能被中断所打断
+//		任务在运行时，可能会因为以下原因进入阻塞状态
+//		OSMBoxPend(), OSQPend(), OSSemPend(), OSTaskSuspend(), OSTimeDly()
+		
+		----> 4.2.4 中断服务状态ISR，运行的任务被中断打断，中断服务程序ISR接管CPU
+//	*	ISR结束，判断就绪任务的优先级
+//  *	其它就绪任务>原有任务，原有任务被抢占CPU
+//  *	其它就绪任务<原有任务，继续执行原有任务
+
+		----> 4.2.5 阻塞/等待状态，任务正等待某个事件（信号量，邮箱或队列）而被挂起
+//		任务等待的事件发生了，则回到就绪状态
+		OSMBoxPost(), OSQPost(), OSSemPost(), OSTaskResume(), OSTimeDlyResume(), OSTimeTick()
+	
+// 5. 任务的调度
+
+// ucosII是可抢占实时多任务内核，一旦高优先级的任务进入就绪状态，立刻就能获取CPU的控制权
+// 任务调度的工作：查找准备就绪的最高优先级的任务并进行上下文切换（任务切换）
+
+// 5.1 调度器Scheduler
+		----> 任务级调度，OSSched() 函数
+		----> 中断级调度，OSIntExt() 函数
+//		可以给调度器上锁 OSSchedlock() 函数，保持CPU的控制权，无论优先级高低
+//		任务完成后使用 OSSchedUnlock() 函数解锁		
+		
+// 5.2 任务切换（上下文切换）
+		----> 将被挂起的任务 		的寄存器内容		入栈（挂起）
+			如栈其实是为了保护当前任务的现场（保护PC,PSW等寄存器的内容）
+		----> 将较高优先级的任务 	的寄存器内容		出栈（恢复）
+		5.2.1 任务级切换 OS_TASK_SW() 函数
+		5.2.2 中断级切换 OSIntCtxSW() 函数
+				
+		
+
+		
+
+

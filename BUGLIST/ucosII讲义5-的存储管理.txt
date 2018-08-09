@@ -1,0 +1,79 @@
+// ucosII的存储管理
+
+// 1. ucosII的内存管理模式
+		---- 实模式存储管理
+				---- 不划分内核空间和用户空间
+				---- 整个系统只有一个地址空间，即物理内存空间
+				---- 应用程序和内核程序都能 直接 对所有的内存单元进行访问
+				---- 系统中的任务都是线程，只有运行上下文和栈是独有的，其它资源都是共享的
+
+// 2. 内存布局
+		---- 代码段（text）
+		---- 数据段（data）
+		---- bss段
+		---- 堆空间
+		---- 栈空间
+
+// 2.1 内存管理，到底管理的是谁？
+		---- 堆空间
+
+// 3. ucosII中内存管理算法
+		---- 固定分区
+				---- 将连续的大块内存按 分区 来进行管理，每个分区（不一定大小相同）包含整数个 大小相同 的块
+				---- 用户应用程序可以从不同的内存分区中得到大小不同的内存块
+				---- 特定的内存块在释放时必须重新放回它之前所属于的内存分区
+							_______
+					分区1	|内存块1|
+							|_______|
+							|内存块2|
+							|_______|
+							|内存块3|
+							|_______|
+							 _______
+					分区2	|		|
+							|内存块1|
+							|_______|
+							|		|
+							|内存块2|
+							|_______|
+							|		|
+							|内存块3|
+							|_______|
+
+// 4. 内存控制块MCB
+		---- os_cfg.h 文件中 OS_MEM_EN = 1 才能使 ucosII 支持内存管理
+		---- OSInit()初始化系统时会调用OSMemInit()，对所有MCB初始化，建立空闲的MCB链表
+		---- 系统的每一个内存分区都有一个自己的MCB
+
+#if (OS_MEM_EN > 0u) && (OS_MAX_MEM_PART > 0u)
+typedef struct os_mem {                   /* MEMORY CONTROL BLOCK                                      */
+    void   *OSMemAddr;                    /* 分区起始地址 */
+    void   *OSMemFreeList;                /* 下一个空闲内存块 */
+    INT32U  OSMemBlkSize;                 /* 内存块的大小 */
+    INT32U  OSMemNBlks;                   /* 内存块数量 */
+    INT32U  OSMemNFree;                   /* 空闲内存块数量 */
+#if OS_MEM_NAME_EN > 0u
+    INT8U  *OSMemName;                    /* Memory partition name                                     */
+#endif
+} OS_MEM;
+
+
+typedef struct os_mem_data {
+    void   *OSAddr;                    /* Pointer to the beginning address of the memory partition     */
+    void   *OSFreeList;                /* Pointer to the beginning of the free list of memory blocks   */
+    INT32U  OSBlkSize;                 /* Size (in bytes) of each memory block                         */
+    INT32U  OSNBlks;                   /* Total number of blocks in the partition                      */
+    INT32U  OSNFree;                   /* Number of memory blocks free                                 */
+    INT32U  OSNUsed;                   /* Number of memory blocks used                                 */
+} OS_MEM_DATA;
+#endif				
+
+// 4.2 内存管理相关的系统服务函数
+			---- OSMemCreate();			// 创建一个内存分区
+			---- OSMemGet();			// 分配一个内存块
+			---- OSMemPut();			// 释放一个内存块
+			
+			
+			
+			
+			
