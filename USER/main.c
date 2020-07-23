@@ -1,248 +1,159 @@
 /*
- *
- *  Copyright 2018，程豪琪，哈尔滨工业大学
- *  All Rights Reserved.
+ * @ Author: �̺���
+ * @ Description: ��������˿���������
  */
-/*
- * *******************************郑重声明****************************************
- 
- * 该程序为本人所写，付出了大量的精力，现将其公开出来供大家参考学习；
- * 任何个人和组织不得未经授权将此程序转载，或用于商业行为！
- * 
- * 由于本人水平有限，程序难免出现错误，可以通过下面的联系方式联系本人
- * 谢谢你的指正！
- *
- * 邮箱：18s153717@stu.hit.edu.cn
- * github：https://github.com/clearcumt
- * 博客：https://www.cnblogs.com/loveclear/
- * 
- * ******************************************************************************
- */
-
-#include "sys.h"
-#include "delay.h"
-#include "GPIO_Motor.h"
-#include "IronHand.h"
-#include "key8.h"
-#include "timer1.h"
-#include "pwm.h"
-#include "stm32f10x_gpio.h"
-#include "motor_ctrl.h"
+#include "main.h"
+#include "stm32f4xx_hal.h"
+#include "motor_ioinit.h"
 #include "motor.h"
-#include "math.h"
-#include "usart_master.h"
+#include "motor_ctrl.h"
 
-void Main_Init(void);
-void Step(void);
-void Compute_Time_Of(unsigned char MOTOID,unsigned char H,unsigned char L);
+// lwip ͷ�ļ�
+#include "string.h"
+#include "bsp_debug_usart.h"
 
-
-// 定时器相关变量
-uint16_t count_time = 0;							// 定时器中断每间隔1ms触发，达到指定count值清零，电机变换转动方向
-
-// 键盘相关变量
-uint16_t Key_Flag = 0;
-
-// 串口接收缓冲数组
-// unsigned char buf[64] = {9,12,4,7,10,4,11,6};
-// volatile unsigned char buf[30];
-volatile REC_BUFFER rec_buffer;
-
-// 自己测试/找bug的时候，设置为1
-#define USART1_DEBUG 1
+#include "lwip/opt.h"
+#include "lwip/init.h"
+#include "lwip/netif.h"
+#include "lwip/timeouts.h"
+#include "netif/etharp.h"
+#include "ethernetif.h"
+#include "app_ethernet.h"
+#include "tcp_echoserver.h"
 
 
-// 主函数文件中定义电机的结构体变量
-volatile MOTOR_CONTROL motor1;
-volatile MOTOR_CONTROL motor2;
-volatile MOTOR_CONTROL motor3;
+// �������ṹ�����
+volatile MOTOR motor_rail;
+volatile MOTOR motor_camera;
+
+// ����lwip����Э����ر���
+struct netif gnetif; // ��������ӿڱ���
+
+
+
 
 int main(void)
 {
-	Main_Init();
-	TIM_Cmd(TIM1,DISABLE);
-	USART1_Master_Init(9600);
-
-	while(1)
-	{												// 主循环程序
+	
+	/* ��λ�������裬��ʼ��Flash�ӿں�ϵͳ�δ�ʱ�� */
+	HAL_Init();
+	/* ����ϵͳʱ�� */
+	SystemClock_Config();
+	/* ��ʼ�����ڲ����ô����ж����ȼ� */
+	MX_DEBUG_USART_Init();
+	/* ��ʼ��LWIP�ں� */
+	lwip_init();
+	/* ��������ӿڣ�����ʹ�õ��Ǿ�̬IP��ַ������DHCP */
+	Netif_Config();
+	
+	while(1) 
+	{	
+		tcp_echoserver_connect(); // ���д���TCPserver
 		
-		Step();										// 如果电机在复位点，且串口缓冲区不为0的时候，开始一步操作
-		if(motor1.isDestn && motor2.isDestn)
-		{											// 到达了目的地
-			TIM_Cmd(TIM1,DISABLE);
-			Annex_Seal_By(MOTOZ,1);					// 执行盖章动作,按下印章
-			delay_s(1);
-			Annex_Seal_By(MOTOZ,0);					// 执行盖章动作,抬起印章
-			delay_s(1);
-			Start_Motor_withS(MOTOX,1);
-			Start_Motor_withS(MOTOY,0);
-			motor1.nextMove = 1;					// 反向过程
-			motor2.nextMove = 1;
-			motor1.isDestn = 0;						// 电机移动偏离目标点，更新状态
-			motor2.isDestn = 0;
-			count_time = 0;
-			TIM_Cmd(TIM1,ENABLE);
-		}					
 	}
 	
-
+	 
+	
 }
 
-/*******************************************************************************
-* 函 数 名         : Main_Init
-* 函数功能         : 主程序外设初始化程序
-* 输    入         : 无 
-* 输    出         : 无
-*******************************************************************************/
-void Main_Init()
+/**
+  * ��������: ϵͳʱ������
+  * �������: ��
+  * �� �� ֵ: ��
+  * ˵    ��: ��
+  */
+void SystemClock_Config(void)
 {
-	// 外设初始化程序
-	delay_init();									// 延时函数初始化
-	NVIC_Configuration(); 	 						// 设置NVIC中断分组2:2位抢占优先级，2位响应优先级
-	
-	GPIO_Motor_Init();								// 电机引脚对应IO口初始化设置
-	GPIO_Key_Init();								// 键盘对应IO口初始化设置
-	GPIO_IronHand_Init();							// 机械手八二马达对应IO口初始化设置
-	
-	Init_USART1_Buffer();							// 初始化SUART1接收缓冲区结构体变量的参数
-	// 初始化三个电机结构体变量的参数
-	Init_Motor_Struct(1); Init_Motor_Struct(2); Init_Motor_Struct(3);
-	// 电机A4988驱动器使能,
-	Set_Motor_EN(MOTOX,motor1.enable); Set_Motor_EN(MOTOY,motor2.enable); Set_Motor_EN(MOTOZ,motor3.enable);
-	// 电机方向设置为反转(0)
-	Set_Motor_Dir(MOTOX,motor1.direction); Set_Motor_Dir(MOTOY,motor2.direction); Set_Motor_Dir(MOTOZ,motor3.direction);
-	// 各个脉冲通道初始化后，默认关闭pwm脉冲输出使能
-	TIM2_PWM_Config_Init(100,956); TIM3_PWM_Config_Init(100,956); TIM4_PWM_Config_Init(100,956);					
-	
-	delay_ms(1000);
-	// 定时器1初始化,1ms	
-	TIM1_Config_Init(1000,72);
+	RCC_OscInitTypeDef RCC_OscInitStruct;
+	RCC_ClkInitTypeDef RCC_ClkInitStruct;
+
+	__HAL_RCC_PWR_CLK_ENABLE();                                     //ʹ��PWRʱ��
+  
+	__HAL_PWR_VOLTAGESCALING_CONFIG(PWR_REGULATOR_VOLTAGE_SCALE1);  //���õ�ѹ�������ѹ����1
+  
+	RCC_OscInitStruct.OscillatorType = RCC_OSCILLATORTYPE_HSE;      // �ⲿ����8MHz
+	RCC_OscInitStruct.HSEState = RCC_HSE_ON;                        //��HSE 
+	RCC_OscInitStruct.PLL.PLLState = RCC_PLL_ON;                    //��PLL
+	RCC_OscInitStruct.PLL.PLLSource = RCC_PLLSOURCE_HSE;            //PLLʱ��Դѡ��HSE
+	RCC_OscInitStruct.PLL.PLLM = 8;                                 //8��ƵMHz
+	RCC_OscInitStruct.PLL.PLLN = 336;                               //336��Ƶ
+	RCC_OscInitStruct.PLL.PLLP = RCC_PLLP_DIV2;                     //2��Ƶ���õ�168MHz��ʱ��
+	RCC_OscInitStruct.PLL.PLLQ = 7;                                 //USB/SDIO/������������ȵ���PLL��Ƶϵ��
+	HAL_RCC_OscConfig(&RCC_OscInitStruct);
+
+	RCC_ClkInitStruct.ClockType = RCC_CLOCKTYPE_HCLK|RCC_CLOCKTYPE_SYSCLK
+							  |RCC_CLOCKTYPE_PCLK1|RCC_CLOCKTYPE_PCLK2;
+	RCC_ClkInitStruct.SYSCLKSource = RCC_SYSCLKSOURCE_PLLCLK;       // ϵͳʱ�ӣ�168MHz
+	RCC_ClkInitStruct.AHBCLKDivider = RCC_SYSCLK_DIV1;              // AHBʱ�ӣ� 168MHz
+	RCC_ClkInitStruct.APB1CLKDivider = RCC_HCLK_DIV4;               // APB1ʱ�ӣ�42MHz
+	RCC_ClkInitStruct.APB2CLKDivider = RCC_HCLK_DIV2;               // APB2ʱ�ӣ�84MHz
+	HAL_RCC_ClockConfig(&RCC_ClkInitStruct, FLASH_LATENCY_5);
+
+	HAL_RCC_EnableCSS();                                            // ʹ��CSS���ܣ�����ʹ���ⲿ�����ڲ�ʱ��ԴΪ����
+
+	// HAL_RCC_GetHCLKFreq()/1000    1ms�ж�һ�Σ�HAL_Delay()��ʱ��λΪ1ms��
+	// HAL_RCC_GetHCLKFreq()/100000	 10us�ж�һ�Σ�HAL_Delay()��ʱ��λΪ10us��
+	// HAL_RCC_GetHCLKFreq()/1000000 1us�ж�һ�Σ�HAL_Delay()��ʱ��λΪ1us��
+	HAL_SYSTICK_Config(HAL_RCC_GetHCLKFreq()/100000);                // ���ò�����ϵͳ�δ�ʱ��
+	/* ϵͳ�δ�ʱ��ʱ��Դ */
+	HAL_SYSTICK_CLKSourceConfig(SYSTICK_CLKSOURCE_HCLK);
+
+	/* ϵͳ�δ�ʱ���ж����ȼ����� */
+	HAL_NVIC_SetPriority(SysTick_IRQn, 0, 0);
 }
 
 
-/*******************************************************************************
-* 函 数 名         : Step
-* 函数功能         : 控制程序单步操作
-* 输    入         : 无 
-* 输    出         : 无
-*******************************************************************************/
-void Step()
+
+/**
+  * ��������: ��������ӿ�
+  * �������: ��
+  * �� �� ֵ: ��
+  * ˵    ��: ��
+  */
+static void Netif_Config(void)
 {
-
-	static int i=0,k=0;
-	
-#if USART1_DEBUG
-	int j;
-#endif	
-	
-	if(motor1.isResetPoint && motor2.isResetPoint)
-	{
-		TIM_Cmd(TIM1,DISABLE);
-		motor1.totalTime = 0;	// 当一次单步操作完成，步进电机复位到原点后，
-		motor2.totalTime = 0;	// 将上次移动所需totalTime清零，防止电机瞎几把乱动
-		
-		if(!rec_buffer.issbufNull)
-		{
-			// 需要更换印章(包括初始第一次更换印章操作，rec_buffer.isNeedChange[k]==11)
-			if((rec_buffer.isNeedChange[k]==1) || (rec_buffer.isNeedChange[k]==11))
-			{
-				Annex_Seal_By(MOTOZ,1);						// Z轴电机下放
-				// if(has seal) 打开机械手，放回印章;
-				// if(no seal)  执行下面的代码;
-				Get_Seal_By(1,3000,50);						// 二八步进电机顺时针旋转一圈，打开机械手手掌
-				delay_s(1);
-				Get_Seal_By(0,3000,50);						// 二八步进电机逆时针旋转一圈，收拢机械手手掌
-															// 获取印章成功
-				Annex_Seal_By(MOTOZ,0);	
-				delay_s(1);
-			}
-		}
-		else
-		{
-			k = 0;
-		}
-
-		
-		// 如果 buf 数组接收到数据，不为空
-		if(!rec_buffer.isbufNull)
-		{
-			// 确定所需时间,移动坐标
-			Compute_Time_Of(motor1.id,rec_buffer.buf[i],rec_buffer.buf[i+1]);
-			Compute_Time_Of(motor2.id,rec_buffer.buf[i+2],rec_buffer.buf[i+3]);
-
-			// 串口缓冲区当前目标点坐标指令清0
-			rec_buffer.buf[i] = 0; rec_buffer.buf[i+1] = 0; rec_buffer.buf[i+2] = 0; rec_buffer.buf[i+3] = 0;	
-			// XY轴动了一次，代表着下一次检索 sbuf 和 isNeedChange 的下一个元素
-			rec_buffer.sbuf[k] = 0;						// 串口缓冲区当前印章ID指令清0
-			rec_buffer.isNeedChange[k] = 0;				// 串口缓冲区当前操作是否需要更换印章指令清0
-			// 检查缓冲区数组是否为空
-			rec_buffer.isbufNull = Check_Null_Buffer(rec_buffer.buf_id);
-			rec_buffer.issbufNull = Check_Null_Buffer(rec_buffer.sbuf_id);
-			k++;
-			
-#if USART1_DEBUG				
-			for(j=0;j<17;j++)
-			{
-				if(j < 16)
-				{
-					USART_SendData(USART1,rec_buffer.buf[j]);
-					// 等待发送缓存器清空（数据已经开始发送）
-					while(USART_GetFlagStatus(USART1, USART_FLAG_TXE) == RESET);					
-				}
-
-				if(j == 16)
-				{
-					USART_SendData(USART1,'\n');
-					while(USART_GetFlagStatus(USART1, USART_FLAG_TXE) == RESET);
-				}
-			}
-#endif			
-			
-			Start_Motor_withS(MOTOX,0);
-			Start_Motor_withS(MOTOY,1);
-			motor1.nextMove = 0;					// 正向过程
-			motor1.nextMove = 0;
-			motor1.isResetPoint = 0;
-			motor2.isResetPoint = 0;				// 电机移动偏离复位点，更新状态
-			count_time = 0;
-			i += 4;
-			TIM_Cmd(TIM1,ENABLE);					// 当接收到并且已经传入给电机对应参数的指令，打开定时器
-		}
-		else
-		{
-			// 如果 buf 数组为空
-			i = 0;
-		}
-	}
-	
+  ip_addr_t ipaddr;
+  ip_addr_t netmask;
+  ip_addr_t gw;
+  
+  /* Initializes the dynamic memory heap defined by MEM_SIZE.*/
+  mem_init();
+  
+  /* Initializes the memory pools defined by MEMP_NUM_x.*/
+  memp_init();  
+#ifdef USE_DHCP
+  ip_addr_set_zero_ip4(&ipaddr);
+  ip_addr_set_zero_ip4(&netmask);
+  ip_addr_set_zero_ip4(&gw);
+#else
+  IP_ADDR4(&ipaddr,IP_ADDR0,IP_ADDR1,IP_ADDR2,IP_ADDR3);
+  IP_ADDR4(&netmask,NETMASK_ADDR0,NETMASK_ADDR1,NETMASK_ADDR2,NETMASK_ADDR3);
+  IP_ADDR4(&gw,GW_ADDR0,GW_ADDR1,GW_ADDR2,GW_ADDR3);
+  
+	printf("��̬IP��ַ........................%d.%d.%d.%d\r\n",IP_ADDR0,IP_ADDR1,IP_ADDR2,IP_ADDR3);
+	printf("��������..........................%d.%d.%d.%d\r\n",NETMASK_ADDR0,NETMASK_ADDR1,NETMASK_ADDR2,NETMASK_ADDR3);
+	printf("Ĭ������..........................%d.%d.%d.%d\r\n",GW_ADDR0,GW_ADDR1,GW_ADDR2,GW_ADDR3);
+#endif /* USE_DHCP */
+  
+  /* Add the network interface */    
+  netif_add(&gnetif, &ipaddr, &netmask, &gw, NULL, &ethernetif_init, &ethernet_input);
+  
+  /* Registers the default network interface */
+  netif_set_default(&gnetif);
+  
+  if (netif_is_link_up(&gnetif))
+  {
+    printf("�ɹ���������\n");
+    /* When the netif is fully configured this function must be called */
+    netif_set_up(&gnetif);
+  }
+  else
+  {
+    /* When the netif link is down this function must be called */
+    netif_set_down(&gnetif);
+  }
+  
+  /* Set the link callback function, this function is called on change of link status*/
+  netif_set_link_callback(&gnetif, ethernetif_update_config);
 }
-
-/*******************************************************************************
-* 函 数 名         : Compute_Time_Of
-* 函数功能         : 确定所需时间,移动坐标
-* 输    入         : MOTOID(电机结构体变量参数的id值）
-					H（buf 数组中坐标值的高8位）
-					L（buf 数组中坐标值的低8位）
-* 输    出         : 无
-*******************************************************************************/
-void Compute_Time_Of(unsigned char MOTOID,unsigned char H,unsigned char L)
-{
-	int qian,bai,shi,ge;
-	qian = H/16;
-	bai = H%16;
-	shi = L/16;
-	ge = L%16;
-	switch(MOTOID)
-	{
-		case 1:
-			motor1.totalTime = qian*1000 + bai*100 + shi*10 + ge*1;
-			motor1.destn = motor1.totalTime * 50.0 / 60;				// 假定电机转速 500rpm，每转一圈前进 6mm
-			break;
-		case 2:
-			motor2.totalTime = qian*1000 + bai*100 + shi*10 + ge*1;
-			motor2.destn = motor2.totalTime * 50.0 / 60;
-			break;
-	}
-}
-
 
