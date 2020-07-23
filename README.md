@@ -1,6 +1,18 @@
 # 4StepperMotorsDriveBySTM32F103x
 基于 STM32F103x系列 单片机的三轴步进电机驱动程序
 
+我已不再做电机控制，这个demo本身是很简单的，本科的时候学习用的。 
+
+另外再上传另一个demo，类似的，使用时切换到该分支, `git checkout HGRobotSimpleDemo`.
+
+[HGRobotSimpleDemo](https://github.com/luoliCHq/4StepperMotorsDriveBySTM32F103x/tree/HGRobotSimpleDemo), 一个简单的滑轨机器人程序, 适合初学者, 只是给出了大致的架构, 只包括上位机与机器人通信(WinForm->LwIP栈->步进电机),板子用的stm32F4.
+
+上位机的话用了因为用了海康的网络球机，所以有网络通信/串口通信/视频监控的功能，都是用SDK开发的。
+
+实际上真正的机器人用的是伺服电机，步进电机也就拿来入门即可。
+
+![avatar](https://github.com/luoliCHq/4StepperMotorsDriveBySTM32F103x/blob/HGRobotSimpleDemo/HGRobotApp.png )
+
 ### 1.相关的GPIO接口说明：  	
 * 电机用GPIOC口
 
